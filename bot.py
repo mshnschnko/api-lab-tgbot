@@ -3,7 +3,7 @@ from aiogram.dispatcher import Dispatcher
 from aiogram.utils import executor
 
 from config import TOKEN
-
+from models import *
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
@@ -27,7 +27,9 @@ async def process_set_reminder_command(message: types.Message):
 
 @dp.message_handler()
 async def echo_message(msg: types.Message):
-    await bot.send_message(msg.from_user.id, msg.text)
+    notification = Notification(user_id=msg.from_user.id, text=msg.text)
+    notification.save()
+    await bot.send_message(msg.from_user.id, "Напоминание создано")
 
 if __name__ == '__main__':
     executor.start_polling(dp)
