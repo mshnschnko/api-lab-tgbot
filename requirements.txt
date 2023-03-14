@@ -1,4 +1,6 @@
 psycopg2
 aiogram
+aioschedule
 peewee
 peewee-migrations
+python-dateutil
