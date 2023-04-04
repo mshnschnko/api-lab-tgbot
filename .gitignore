@@ -2,3 +2,10 @@
 *pycache*
 db_config.py
 tokens.py
+client_secrets.json
+*jpg
+*png
+*jpeg
+*tif
+*tiff
+*pdf

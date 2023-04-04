@@ -4,3 +4,4 @@ aioschedule
 peewee
 peewee-migrations
 python-dateutil
+pydrive

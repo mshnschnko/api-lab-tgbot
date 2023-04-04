@@ -11,7 +11,8 @@ inline_kb1 = InlineKeyboardMarkup(row_width=2).add(inline_btn_temp, inline_btn_p
 inline_kb2 = InlineKeyboardMarkup().add(inline_btn_cancel_adding)
 
 # --- Inline Editing Reminder status buttons ---
-inline_btn_done = InlineKeyboardButton('Выполнено', callback_data='btn_done')
+inline_btn_done = InlineKeyboardButton('Изменить статус', callback_data='btn_done')
+inline_btn_not_done = InlineKeyboardButton('Вернуть', callback_data='btn_done')
 inline_btn_delete = InlineKeyboardButton('Удалить', callback_data='btn_delete')
 inline_btn_edit = InlineKeyboardButton('Редактировать', callback_data='btn_edit')
 inline_btn_back = InlineKeyboardButton('<<< Назад', callback_data='btn_back_list')
@@ -24,6 +25,15 @@ inline_kb_edit1_back = InlineKeyboardMarkup(row_width=2).add(inline_btn_done,
                                                              inline_btn_delete,
                                                              inline_btn_edit
                                                              ).add(inline_btn_back)
+
+# inline_kb_edit3 = InlineKeyboardMarkup(row_width=2).add(inline_btn_not_done,
+#                                                         inline_btn_delete,
+#                                                         inline_btn_edit
+#                                                         )
+# inline_kb_edit3_back = InlineKeyboardMarkup(row_width=2).add(inline_btn_not_done,
+#                                                              inline_btn_delete,
+#                                                              inline_btn_edit
+#                                                              ).add(inline_btn_back)
 
 # --- Inline Editing Reminder buttons ---
 # inline_btn_back = InlineKeyboardButton('<<< Back', callback_data='btn_back')

@@ -1,5 +1,10 @@
 from aiogram import types
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 from aiogram.dispatcher import FSMContext
+from pydrive.auth import GoogleAuth
+from pydrive.drive import GoogleDrive
+import os
+
 import bot.buttons.inline_buttons as i_btn
 import bot.buttons.reply_buttons as r_btn
 from bot import dp, bot, reminders, storage
@@ -7,9 +12,13 @@ from bot.handlers.callback_handlers import handler_edit_reminder, handler_done_r
 from bot.handlers.show_handlers import handler_show_all, handler_show_permanent, \
     handler_show_temporary, handler_show_bookmarks
 from bot.forms.answer_forms import answer_forms
-from bot.forms.forms import FormTemp, FormPerm, FormBookmark
+from bot.forms.forms import FormTemp, FormPerm, FormBookmark, Edit
 from bot.handlers import buttons_handlers as hand_btn, callback_handlers as hand_clb
 from bot.access import back_access
+from bot.identifier import reminder_recognize_from_id
+import db.db_manager as db
+from run import gauth
+
 
 
 @dp.message_handler(lambda message: message.text.startswith('Создать новое'))
@@ -54,6 +63,7 @@ async def process_callback_btn_temp(callback_query: types.CallbackQuery):
 async def process_title_temp(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['title'] = message.text
+        data['attachments'] = ''
 
     await FormTemp.next()
     await hand_clb.send_forms_answer(bot=bot,
@@ -67,17 +77,85 @@ async def process_date_temp(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['date'] = message.text
 
-        answer = reminders.add_reminder(user_id=message.from_id,
-                                        notification_type='temp',
-                                        text=data['title'],
-                                        date=data['date'],)
+        # answer = reminders.add_reminder(user_id=message.from_id,
+        #                                 notification_type='temp',
+        #                                 text=data['title'],
+        #                                 date=data['date'],)
         
+        # await hand_clb.send_forms_answer(bot=bot,
+        #                                  message=message,
+        #                                  data=answer_forms(answer),
+        #                                  markup=i_btn.inline_kb_edit1)
+    SkipBtn = KeyboardButton("Пропустить")
+    SkipKeyboard = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2, one_time_keyboard=True).add(SkipBtn)
+    await message.answer("Если хотите добавить вложения, то пришлите файл. Иначе нажмите кнопку пропустить.", reply_markup=SkipKeyboard)
+    await FormTemp.next()
+
+
+@dp.message_handler(lambda message: message.text.startswith('Пропустить') or message.text.startswith('Завершить'), state=FormTemp.attachments)
+async def cancel_attachments_temp(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        answer = reminders.add_reminder(user_id=message.from_id,
+                                            notification_type='temp',
+                                            text=data['title'],
+                                            date=data['date'],
+                                            attachments=data['attachments'])
+        await message.answer(text="Напоминание успешно создано.", reply_markup=r_btn.mainMenu)
         await hand_clb.send_forms_answer(bot=bot,
-                                         message=message,
-                                         data=answer_forms(answer),
-                                         markup=i_btn.inline_kb_edit1)
+                                            message=message,
+                                            data=answer_forms(answer),
+                                            markup=i_btn.inline_kb_edit1)
     await state.finish()
 
+
+@dp.message_handler(state=FormTemp.attachments, content_types=["document", "photo", "video", "audio", "voice"])
+async def add_attachments_temp(message: types.Message, state: FSMContext):
+    # await message.answer("я тут")
+    # if message.text == "Пропустить":
+    #     return
+    # gauth = GoogleAuth()
+    # gauth.LocalWebserverAuth()
+    try:
+        gdrive = GoogleDrive(gauth)
+        async with state.proxy() as data:
+            filename = ''
+            file = None
+            if not message.document is None:
+                file = message.document
+                filename = message.document.file_name + message.document.file_id
+            elif not message.photo is None:
+                file = message.photo[0]
+                filename = message.photo[0].file_id
+            elif not message.video is None:
+                file = message.video
+                filename = message.video.file_name + message.video.file_id
+            elif not message.audio is None:
+                file = message.audio
+                filename = message.audio.file_name + message.audio.file_id
+            elif not message.voice is None:
+                file = message.voice
+                filename = message.voice.file_id
+
+            dir_path = os.getcwd()
+            doc_dir = "documents"
+            await file.download(destination_file=os.path.join(dir_path, doc_dir, filename))
+            new_file = gdrive.CreateFile({'title': f'{filename}', 'parents': [{'id': '1y5Zs-VIlg_U935EHQDxLHdWXfHa5gCG3'}]})
+            new_file.SetContentFile(os.path.join(dir_path, doc_dir, filename))
+            new_file.Upload()
+            # link = new_file['alternateLink']
+            # i = link.find("view?usp=")
+            # link = link[:i]
+            link = new_file['id']
+            new_file = None
+            if os.path.isfile(os.path.join(dir_path, doc_dir, filename)):
+                os.remove(os.path.join(dir_path, doc_dir, filename))
+            data['attachments'] += str(link) + ";"
+            CompleteBtn = KeyboardButton("Завершить")
+            CompleteKeyboard = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2, one_time_keyboard=True).add(CompleteBtn)
+            await message.answer("Файл успешно загружен. Если вы больше не хотите загружать файлы, то нажмите Завершить.", reply_markup=CompleteKeyboard)
+    except Exception as ex:
+        await message.answer(f"Что-то не так с файлом.\n{ex}")
+        return
 
 ##############################################################################
 
@@ -96,6 +174,7 @@ async def process_callback_btn_perm(callback_query: types.CallbackQuery):
 async def process_title_perm(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['title'] = message.text
+        data['attachments'] = ''
 
     await FormPerm.next()
     await hand_clb.send_forms_answer(bot=bot,
@@ -121,17 +200,88 @@ async def process_frequency_perm(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['frequency'] = message.text
 
+        # answer = reminders.add_reminder(user_id=message.from_id,
+        #                                 notification_type='perm',
+        #                                 text=data['title'],
+        #                                 date=data['date'],
+        #                                 frequency=data['frequency'])
+
+        # await hand_clb.send_forms_answer(bot=bot,
+        #                                  message=message,
+        #                                  data=answer_forms(answer),
+        #                                  markup=i_btn.inline_kb_edit1)
+    # await state.finish()
+    SkipBtn = KeyboardButton("Пропустить")
+    SkipKeyboard = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2, one_time_keyboard=True).add(SkipBtn)
+    await message.answer("Если хотите добавить вложения, то пришлите файл. Иначе нажмите кнопку пропустить.", reply_markup=SkipKeyboard)
+    await FormPerm.next()
+
+
+@dp.message_handler(lambda message: message.text.startswith('Пропустить') or message.text.startswith('Завершить'), state=FormPerm.attachments)
+async def cancel_attachments_perm(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
         answer = reminders.add_reminder(user_id=message.from_id,
                                         notification_type='perm',
                                         text=data['title'],
                                         date=data['date'],
-                                        frequency=data['frequency'])
-
+                                        frequency=data['frequency'],
+                                        attachments=data['attachments'])
+        await message.answer(text="Напоминание успешно создано.", reply_markup=r_btn.mainMenu)
         await hand_clb.send_forms_answer(bot=bot,
                                          message=message,
                                          data=answer_forms(answer),
                                          markup=i_btn.inline_kb_edit1)
     await state.finish()
+
+
+@dp.message_handler(state=FormPerm.attachments, content_types=["document", "photo", "video", "audio", "voice"])
+async def add_attachments_perm(message: types.Message, state: FSMContext):
+    # await message.answer("я тут")
+    # if message.text == "Пропустить":
+    #     return
+    # gauth = GoogleAuth()
+    # gauth.LocalWebserverAuth()
+    try:
+        gdrive = GoogleDrive(gauth)
+        async with state.proxy() as data:
+            filename = ''
+            file = None
+            if not message.document is None:
+                file = message.document
+                filename = message.document.file_name + message.document.file_id
+            elif not message.photo is None:
+                file = message.photo[0]
+                filename = message.photo[0].file_id
+            elif not message.video is None:
+                file = message.video
+                filename = message.video.file_name + message.video.file_id
+            elif not message.audio is None:
+                file = message.audio
+                filename = message.audio.file_name + message.audio.file_id
+            elif not message.voice is None:
+                file = message.voice
+                filename = message.voice.file_id
+
+            dir_path = os.getcwd()
+            doc_dir = "documents"
+            await file.download(destination_file=os.path.join(dir_path, doc_dir, filename))
+            new_file = gdrive.CreateFile({'title': f'{filename}', 'parents': [{'id': '1y5Zs-VIlg_U935EHQDxLHdWXfHa5gCG3'}]})
+            new_file.SetContentFile(os.path.join(dir_path, doc_dir, filename))
+            new_file.Upload()
+            # link = new_file['alternateLink']
+            # i = link.find("view?usp=")
+            # link = link[:i]
+            link = new_file['id']
+            new_file = None
+            if os.path.isfile(os.path.join(dir_path, doc_dir, filename)):
+                os.remove(os.path.join(dir_path, doc_dir, filename))
+            data['attachments'] += str(link) + ";"
+            CompleteBtn = KeyboardButton("Завершить")
+            CompleteKeyboard = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2, one_time_keyboard=True).add(CompleteBtn)
+            await message.answer("Файл успешно загружен. Если вы больше не хотите загружать файлы, то нажмите Завершить.", reply_markup=CompleteKeyboard)
+    except Exception as ex:
+        await message.answer(f"Что-то не так с файлом.\n{ex}")
+        return
 
 
 #################################################################
@@ -151,17 +301,86 @@ async def process_callback_btn_book(callback_query: types.CallbackQuery):
 async def process_title_book(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['title'] = message.text
+        data['attachments'] = ''
 
+    #     answer = reminders.add_reminder(user_id=message.from_id,
+    #                                     notification_type='book',
+    #                                     text=data['title'],
+    #                                     date=None)
+
+    #     await hand_clb.send_forms_answer(bot=bot,
+    #                                      message=message,
+    #                                      data=answer_forms(answer),
+    #                                      markup=i_btn.inline_kb_edit1)
+    # await state.finish()
+    FormBookmark.next()
+
+
+@dp.message_handler(lambda message: message.text.startswith('Пропустить') or message.text.startswith('Завершить'), state=FormBookmark.attachments)
+async def cancel_attachments_book(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
         answer = reminders.add_reminder(user_id=message.from_id,
-                                        notification_type='book',
+                                        notification_type='perm',
                                         text=data['title'],
-                                        date=None)
-
+                                        date=data['date'],
+                                        frequency=data['frequency'],
+                                        attachments=data['attachments'])
+        await message.answer(text="Напоминание успешно создано.", reply_markup=r_btn.mainMenu)
         await hand_clb.send_forms_answer(bot=bot,
                                          message=message,
                                          data=answer_forms(answer),
                                          markup=i_btn.inline_kb_edit1)
     await state.finish()
+
+
+@dp.message_handler(state=FormBookmark.attachments, content_types=["document", "photo", "video", "audio", "voice"])
+async def add_attachments_book(message: types.Message, state: FSMContext):
+    # await message.answer("я тут")
+    # if message.text == "Пропустить":
+    #     return
+    # gauth = GoogleAuth()
+    # gauth.LocalWebserverAuth()
+    try:
+        gdrive = GoogleDrive(gauth)
+        async with state.proxy() as data:
+            filename = ''
+            file = None
+            if not message.document is None:
+                file = message.document
+                filename = message.document.file_name + message.document.file_id
+            elif not message.photo is None:
+                file = message.photo[0]
+                filename = message.photo[0].file_id
+            elif not message.video is None:
+                file = message.video
+                filename = message.video.file_name + message.video.file_id
+            elif not message.audio is None:
+                file = message.audio
+                filename = message.audio.file_name + message.audio.file_id
+            elif not message.voice is None:
+                file = message.voice
+                filename = message.voice.file_id
+
+            dir_path = os.getcwd()
+            doc_dir = "documents"
+            await file.download(destination_file=os.path.join(dir_path, doc_dir, filename))
+            new_file = gdrive.CreateFile({'title': f'{filename}', 'parents': [{'id': '1y5Zs-VIlg_U935EHQDxLHdWXfHa5gCG3'}]})
+            new_file.SetContentFile(os.path.join(dir_path, doc_dir, filename))
+            new_file.Upload()
+            # link = new_file['alternateLink']
+            # i = link.find("view?usp=")
+            # link = link[:i]
+            link = new_file['id']
+            new_file = None
+            if os.path.isfile(os.path.join(dir_path, doc_dir, filename)):
+                os.remove(os.path.join(dir_path, doc_dir, filename))
+            data['attachments'] += str(link) + ";"
+            CompleteBtn = KeyboardButton("Завершить")
+            CompleteKeyboard = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2, one_time_keyboard=True).add(CompleteBtn)
+            await message.answer("Файл успешно загружен. Если вы больше не хотите загружать файлы, то нажмите Завершить.", reply_markup=CompleteKeyboard)
+    except Exception as ex:
+        await message.answer(f"Что-то не так с файлом.\n{ex}")
+        return
 
 
 #################################################################
@@ -200,7 +419,15 @@ async def process_callback_btn_back(callback_query: types.CallbackQuery):
 
 
 @dp.callback_query_handler(lambda c: c.data == 'btn_edit_text')
-async def process_callback_btn_edit_text(callback_query: types.CallbackQuery):
+async def process_callback_btn_edit_text(callback_query: types.CallbackQuery, state: FSMContext):
+    await Edit.id.set()
+    current_state = await state.get_state()
+    id = int()
+    if not current_state is None:
+        _, id = reminder_recognize_from_id(callback_query.message.text)
+        async with state.proxy() as data:
+            data['id'] = id
+        await Edit.title.set()
     await hand_clb.edit_callback_message(bot=bot,
                                          callback_query=callback_query,
                                          data="EDIT TEXT",
@@ -208,7 +435,15 @@ async def process_callback_btn_edit_text(callback_query: types.CallbackQuery):
 
 
 @dp.callback_query_handler(lambda c: c.data == 'btn_edit_date')
-async def process_callback_btn_edit_date(callback_query: types.CallbackQuery):
+async def process_callback_btn_edit_date(callback_query: types.CallbackQuery, state: FSMContext):
+    await Edit.id.set()
+    current_state = await state.get_state()
+    id = int()
+    if not current_state is None:
+        _, id = reminder_recognize_from_id(callback_query.message.text)
+        async with state.proxy() as data:
+            data['id'] = id
+        await Edit.date.set()
     await hand_clb.edit_callback_message(bot=bot,
                                          callback_query=callback_query,
                                          data="EDIT DATE/TIME",
@@ -246,6 +481,26 @@ async def process_callback_btn_back_list(callback_query: types.CallbackQuery):
                                             data="Choose in menu:",
                                             markup=r_btn.mainMenu,
                                             delete=True)
+
+
+@dp.message_handler(state=Edit.title)
+async def edit_title(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        data['title'] = message.text
+        db.edit_title_with_id(id=data['id'], data=data['title'])
+
+        await message.answer("Текст напоминания обновлен", reply_markup=r_btn.mainMenu)
+        await state.finish()
+
+
+@dp.message_handler(state=Edit.date)
+async def edit_date(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        data['date'] = message.text
+        db.edit_date_with_id(id=data['id'], date=data['date'])
+
+        await message.answer("Дата напоминания обновлена", reply_markup=r_btn.mainMenu)
+        await state.finish()
 
 
 @dp.message_handler(commands=['start', 'help', 'menu'])

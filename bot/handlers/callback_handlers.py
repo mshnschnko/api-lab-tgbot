@@ -9,7 +9,9 @@ from bot import reminders
 from bot.buttons.inline_buttons import inline_kb_edit1_back
 from bot.buttons.reply_buttons import mainMenu
 from bot.identifier import reminder_recognize_from_id
-from bot.emojis import emojis_recognize, EMOJI_DONE
+from bot.emojis import emojis_recognize, EMOJI_DONE, EMOJI_NOT_DONE
+
+from db.models import *
 
 
 async def send_callback_answer(bot: Bot,
@@ -59,6 +61,8 @@ async def edit_callback_message(bot: Bot,
                                 markup: Union[InlineKeyboardMarkup,
                                               ReplyKeyboardMarkup]
                                 ) -> None:
+    text, id = reminder_recognize_from_id(callback_query.message.text)
+    
     await bot.answer_callback_query(callback_query.id)
     await bot.edit_message_text(chat_id=callback_query.message.chat.id,
                                 message_id=callback_query.message.message_id,
@@ -69,11 +73,11 @@ async def edit_callback_message(bot: Bot,
 async def handler_edit_reminder(callback_query: CallbackQuery, bot: Bot) -> None:
     id = callback_query.data[5:]
     reminder = db.find_by_id(id=id)
-    stick_done, stick_type = emojis_recognize(reminder[4], reminder[2])
-    if reminder[2] != 'book':
-        result_string = f'{stick_done} {stick_type} - {reminder[1]}:\n{reminder[3]}\n id:{reminder[0]}'
+    stick_done, stick_type = emojis_recognize(reminder.is_done, reminder.notification_type)
+    if reminder.notification_type != 'book':
+        result_string = f'{stick_done} {stick_type} - {reminder.text}:\n{reminder.time}\n id:{reminder.notification_id}'
     else:
-        result_string = f'{stick_done} {stick_type} - {reminder[1]}\n id:{reminder[0]}'
+        result_string = f'{stick_done} {stick_type} - {reminder.text}\n id:{reminder.notification_id}'
     await bot.edit_message_text(chat_id=callback_query.message.chat.id,
                                 message_id=callback_query.message.message_id,
                                 text=result_string,
@@ -81,16 +85,18 @@ async def handler_edit_reminder(callback_query: CallbackQuery, bot: Bot) -> None
 
 
 async def handler_done_reminder(callback_query: CallbackQuery, bot: Bot) -> None:
-    await bot.answer_callback_query(callback_query.id, text="Reminder was done.")
+    await bot.answer_callback_query(callback_query.id, text="Статус изменен")
     text, id = reminder_recognize_from_id(callback_query.message.text)
     reminder = reminders.done_reminder(id)
     print(reminder)
     if text[1] == '*':
-        text = text.split('**NOTIFICATION**\n\n')[1]
+        text = text.split('Напоминание:\n\n')[1]
     if reminder.is_done == 0:
+        not_done_text = text[1:]
+        result_string = EMOJI_NOT_DONE + not_done_text
         await bot.edit_message_text(chat_id=callback_query.message.chat.id,
                                     message_id=callback_query.message.message_id,
-                                    text=callback_query.message.text,
+                                    text=result_string,
                                     reply_markup=callback_query.message.reply_markup)
     else:
         done_text = text[1:]
@@ -111,10 +117,10 @@ async def handler_delete_reminder(callback_query: CallbackQuery, bot: Bot) -> No
     if isinstance(reminder, str):
         result_string = reminder
     else:
-        result_string = f'Reminder "{reminder.title}" was deleted'
+        result_string = f'Напоминание "{reminder.title}" было удалено'
 
     await send_callback_answer(bot=bot,
                                callback_query=callback_query,
-                               data="Choose in menu:",
+                               data="Выберите в меню:",
                                markup=mainMenu,
                                query=result_string)

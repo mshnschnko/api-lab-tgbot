@@ -34,9 +34,15 @@ def delete_by_id(id: int) -> Tuple:
     return notification_id, text, notification_type, time, is_done, frequency
 
 def mark_done(id: int) -> Tuple:
-    notification = Notification(is_done = True)
-    notification.notification_id = id
-    notification.save()
+    notification = Notification.get(Notification.notification_id == id)
+    if notification.is_done == False:
+        notification = Notification(is_done = True)
+        notification.notification_id = id
+        notification.save()
+    else:
+        notification = Notification(is_done = False)
+        notification.notification_id = id
+        notification.save()
     notification = Notification.get(Notification.notification_id == id)
     notification_id = notification.notification_id
     text = notification.text
@@ -59,10 +65,22 @@ def set_date_with_id(id: int, date: str, frequency_str: str) -> None:
     notification.notification_id = id
     notification.save()
 
+
+def edit_date_with_id(id: int, date: str):
+    new_date = parse(date, fuzzy=True)
+    notification = Notification(time = new_date)
+    notification.notification_id = id
+    notification.save()
+
+def edit_title_with_id(id: int, data: str):
+    notification = Notification(text = data)
+    notification.notification_id = id
+    notification.save()
+
 def find_by_date(date: str) -> List:
     notifications = Notification.select().where(Notification.time == date).dicts().execute()
     return notifications
 
-def find_by_id(id: int) -> object:
+def find_by_id(id: int) -> Notification:
     notification = Notification.get(Notification.notification_id == id)
     return notification

@@ -12,16 +12,16 @@ async def back_access(data: str) -> str:
 
     if data['type'] == "all":
         data = get_all_reminders()
-        type_string = "reminders"
+        type_string = "Напоминания"
     elif data['type'] == "perm":
         data = get_permanent_reminders()
-        type_string = "permanent reminders"
+        type_string = "Повторяющиеся напоминания"
     elif data['type'] == "temp":
         data = get_temporary_reminders()
-        type_string = "temporary reminders"
+        type_string = "Разовые напоминания"
     elif data['type'] == "book":
         data = get_bookmarks()
-        type_string = "bookmarks"
+        type_string = "Без даты"
     else:
         raise KeyError
     if data:
@@ -31,5 +31,5 @@ async def back_access(data: str) -> str:
             result_string += answer_forms(element=elem, position=temp, adding=True)
             temp += 1
     else:
-        result_string, inline_kb_to_choose = f"No {type_string} in system.", remindersMenu
+        result_string, inline_kb_to_choose = f"В системе нет напоминаний типа {type_string}.", remindersMenu
     return result_string, inline_kb_to_choose

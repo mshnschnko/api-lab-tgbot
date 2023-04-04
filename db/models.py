@@ -22,6 +22,6 @@ class Notification(BaseModel):
     notification_type = CharField(max_length=20)
     text = CharField(max_length=200, null=False)
     time = DateTimeField(formats='%Y-%m-%d %H:%M:%S', null=True)
-    attachments = CharField(max_length=200, null=True)
+    attachments = TextField(null=True)
     is_done = BooleanField(default=False, null=True)
     frequency = IntegerField(default=0, null=True)
