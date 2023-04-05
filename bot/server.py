@@ -120,21 +120,34 @@ async def add_attachments_temp(message: types.Message, state: FSMContext):
         async with state.proxy() as data:
             filename = ''
             file = None
+            file_type = None
             if not message.document is None:
                 file = message.document
-                filename = message.document.file_name + message.document.file_id
+                file_type = 'document'
+                # filename = message.document.file_name + message.document.file_id
+                filename = message.document.file_id
             elif not message.photo is None:
                 file = message.photo[0]
+                file_type = 'photo'
                 filename = message.photo[0].file_id
             elif not message.video is None:
                 file = message.video
-                filename = message.video.file_name + message.video.file_id
+                file_type = 'video'
+                # filename = message.video.file_name + message.video.file_id
+                filename = message.video.file_id
             elif not message.audio is None:
                 file = message.audio
-                filename = message.audio.file_name + message.audio.file_id
-            elif not message.voice is None:
-                file = message.voice
-                filename = message.voice.file_id
+                file_type = 'audio'
+                # filename = message.audio.file_name + message.audio.file_id
+                filename = message.audio.file_id
+            # elif not message.voice is None:
+            #     file = message.voice
+            #     file_type = 'voice'
+            #     filename = message.voice.file_id
+            else:
+                await message.answer("Файл данного типа нельзя сохранить.")
+                file = None
+                return
 
             dir_path = os.getcwd()
             doc_dir = "documents"
@@ -145,11 +158,14 @@ async def add_attachments_temp(message: types.Message, state: FSMContext):
             # link = new_file['alternateLink']
             # i = link.find("view?usp=")
             # link = link[:i]
-            link = new_file['id']
+
+            # link = new_file['id']
+            link = filename
+
             new_file = None
             if os.path.isfile(os.path.join(dir_path, doc_dir, filename)):
                 os.remove(os.path.join(dir_path, doc_dir, filename))
-            data['attachments'] += str(link) + ";"
+            data['attachments'] += str(link) + "," + file_type + ";"
             CompleteBtn = KeyboardButton("Завершить")
             CompleteKeyboard = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2, one_time_keyboard=True).add(CompleteBtn)
             await message.answer("Файл успешно загружен. Если вы больше не хотите загружать файлы, то нажмите Завершить.", reply_markup=CompleteKeyboard)
@@ -246,21 +262,34 @@ async def add_attachments_perm(message: types.Message, state: FSMContext):
         async with state.proxy() as data:
             filename = ''
             file = None
+            file_type = None
             if not message.document is None:
                 file = message.document
-                filename = message.document.file_name + message.document.file_id
+                file_type = 'document'
+                # filename = message.document.file_name + message.document.file_id
+                filename = message.document.file_id
             elif not message.photo is None:
                 file = message.photo[0]
+                file_type = 'photo'
                 filename = message.photo[0].file_id
             elif not message.video is None:
                 file = message.video
-                filename = message.video.file_name + message.video.file_id
+                file_type = 'video'
+                # filename = message.video.file_name + message.video.file_id
+                filename = message.video.file_id
             elif not message.audio is None:
                 file = message.audio
-                filename = message.audio.file_name + message.audio.file_id
-            elif not message.voice is None:
-                file = message.voice
-                filename = message.voice.file_id
+                file_type = 'audio'
+                # filename = message.audio.file_name + message.audio.file_id
+                filename = message.audio.file_id
+            # elif not message.voice is None:
+            #     file = message.voice
+            #     file_type = 'voice'
+            #     filename = message.voice.file_id
+            else:
+                await message.answer("Файл данного типа нельзя сохранить.")
+                file = None
+                return
 
             dir_path = os.getcwd()
             doc_dir = "documents"
@@ -271,11 +300,14 @@ async def add_attachments_perm(message: types.Message, state: FSMContext):
             # link = new_file['alternateLink']
             # i = link.find("view?usp=")
             # link = link[:i]
-            link = new_file['id']
+
+            # link = new_file['id']
+            link = filename
+
             new_file = None
             if os.path.isfile(os.path.join(dir_path, doc_dir, filename)):
                 os.remove(os.path.join(dir_path, doc_dir, filename))
-            data['attachments'] += str(link) + ";"
+            data['attachments'] += str(link) + "," + file_type + ";"
             CompleteBtn = KeyboardButton("Завершить")
             CompleteKeyboard = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2, one_time_keyboard=True).add(CompleteBtn)
             await message.answer("Файл успешно загружен. Если вы больше не хотите загружать файлы, то нажмите Завершить.", reply_markup=CompleteKeyboard)
@@ -345,21 +377,34 @@ async def add_attachments_book(message: types.Message, state: FSMContext):
         async with state.proxy() as data:
             filename = ''
             file = None
+            file_type = None
             if not message.document is None:
                 file = message.document
-                filename = message.document.file_name + message.document.file_id
+                file_type = 'document'
+                # filename = message.document.file_name + message.document.file_id
+                filename = message.document.file_id
             elif not message.photo is None:
                 file = message.photo[0]
+                file_type = 'photo'
                 filename = message.photo[0].file_id
             elif not message.video is None:
                 file = message.video
-                filename = message.video.file_name + message.video.file_id
+                file_type = 'video'
+                # filename = message.video.file_name + message.video.file_id
+                filename = message.video.file_id
             elif not message.audio is None:
                 file = message.audio
-                filename = message.audio.file_name + message.audio.file_id
-            elif not message.voice is None:
-                file = message.voice
-                filename = message.voice.file_id
+                file_type = 'audio'
+                # filename = message.audio.file_name + message.audio.file_id
+                filename = message.audio.file_id
+            # elif not message.voice is None:
+            #     file = message.voice
+            #     file_type = 'voice'
+            #     filename = message.voice.file_id
+            else:
+                await message.answer("Файл данного типа нельзя сохранить.")
+                file = None
+                return
 
             dir_path = os.getcwd()
             doc_dir = "documents"
@@ -370,11 +415,14 @@ async def add_attachments_book(message: types.Message, state: FSMContext):
             # link = new_file['alternateLink']
             # i = link.find("view?usp=")
             # link = link[:i]
-            link = new_file['id']
+
+            # link = new_file['id']
+            link = filename
+            
             new_file = None
             if os.path.isfile(os.path.join(dir_path, doc_dir, filename)):
                 os.remove(os.path.join(dir_path, doc_dir, filename))
-            data['attachments'] += str(link) + ";"
+            data['attachments'] += str(link) + "," + file_type + ";"
             CompleteBtn = KeyboardButton("Завершить")
             CompleteKeyboard = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2, one_time_keyboard=True).add(CompleteBtn)
             await message.answer("Файл успешно загружен. Если вы больше не хотите загружать файлы, то нажмите Завершить.", reply_markup=CompleteKeyboard)

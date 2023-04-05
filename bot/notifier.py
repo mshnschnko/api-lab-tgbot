@@ -32,35 +32,63 @@ async def job():
                 db.set_date_with_id(id=elem['notification_id'], date=elem['time'])
             stick_done, stick_type = emojis_recognize(elem['is_done'], elem['notification_type'])
 
-            answer_message = f"**NOTIFICATION**\n\n" \
+            answer_message = f"Напоминание:\n\n" \
                              + f"{stick_done} {stick_type} - {elem['text']}:\n{elem['time']}\n id:{elem['notification_id']}"
+            attachments = list()
             files = list()
             if not elem['attachments'] is None:
-                files = elem['attachments'].split(';')
-                files.pop(-1)
-            media = types.MediaGroup()
-            paths = list()
-            if not len(files) == 0:
-                for idx, file in enumerate(files):
-                    print(file)
-                    try:
-                        dir_path = os.getcwd()
-                        doc_dir = "documents"
-                        gdrive = GoogleDrive(gauth)
-                        file1 = gdrive.CreateFile({'id': file})
-                        file_to_send_path = os.path.join(dir_path, doc_dir, file)
-                        paths.append(file_to_send_path)
-                        file1.GetContentFile(file_to_send_path)
-                        media.attach_document(types.InputFile(file_to_send_path), f"file_{idx}")
-                    except Exception as ex:
-                        print(ex)
-                    # media.attach_document("https://mykaleidoscope.ru/x/uploads/posts/2022-09/1663151884_7-mykaleidoscope-ru-p-zlaya-zhaba-instagram-8.jpg", f"file_{idx}")
+                attachments = elem['attachments'].split(';')
+                attachments.pop(-1)
+                for attachment in attachments:
+                    file_info = attachment.split(',')
+                    files.append({'id':file_info[0],
+                                  'type':file_info[1]})
+            # media = types.MediaGroup()
+            # paths = list()
+            # if not len(files) == 0:
+            #     for idx, file in enumerate(files):
+            #         print(file)
+                    # try:
+                    #     dir_path = os.getcwd()
+                    #     doc_dir = "documents"
+                    #     gdrive = GoogleDrive(gauth)
+                    #     file1 = gdrive.CreateFile({'id': file})
+                    #     file_to_send_path = os.path.join(dir_path, doc_dir, file)
+                    #     paths.append(file_to_send_path)
+                    #     file1.GetContentFile(file_to_send_path)
+                    #     media.attach_document(types.InputFile(file_to_send_path), f"file_{idx}")
+                    # except Exception as ex:
+                    #     print(ex)
+
+                    # if file['type'] == 'document':
+                    #     media.attach_document(document=file['id'])
+                    # if file['type'] == 'photo':
+                    #     media.attach_photo(photo=file['id'])
+                    # if file['type'] == 'video':
+                    #     media.attach_video(video=file['id'])
+                    # if file['type'] == 'audio':
+                    #     media.attach_audio(audio=file['id'])
             await bot.send_message(chat_id=elem['user_id'], text=answer_message, reply_markup=i_btn.inline_kb_edit1)
-            if not len(files) == 0:
-                await bot.send_media_group(chat_id=elem['user_id'], media=media)
-            for path in paths:
-                if os.path.isfile(path):
-                    os.remove(path)
+            
+            for file in files:
+                if file['type'] == 'document':
+                    await bot.send_document(chat_id=elem['user_id'], document=file['id'])
+                    # media.attach_document(document=file['id'])
+                if file['type'] == 'photo':
+                    await bot.send_photo(chat_id=elem['user_id'], photo=file['id'])
+                    # media.attach_photo(photo=file['id'])
+                if file['type'] == 'video':
+                    await bot.send_video(chat_id=elem['user_id'], video=file['id'])
+                    # media.attach_video(video=file['id'])
+                if file['type'] == 'audio':
+                    await bot.send_audio(chat_id=elem['user_id'], audio=file['id'])
+                    # media.attach_audio(audio=file['id'])
+
+            # if not len(files) == 0:
+                # await bot.send_media_group(chat_id=elem['user_id'], media=media)
+            # for path in paths:
+            #     if os.path.isfile(path):
+            #         os.remove(path)
             # for file in files:
             #     await bot.send_document(chat_id=elem['user_id'], )
 

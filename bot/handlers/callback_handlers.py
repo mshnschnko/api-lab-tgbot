@@ -78,10 +78,34 @@ async def handler_edit_reminder(callback_query: CallbackQuery, bot: Bot) -> None
         result_string = f'{stick_done} {stick_type} - {reminder.text}:\n{reminder.time}\n id:{reminder.notification_id}'
     else:
         result_string = f'{stick_done} {stick_type} - {reminder.text}\n id:{reminder.notification_id}'
+    
+    attachments = list()
+    files = list()
+    if not reminder.attachments is None:
+        attachments = reminder.attachments.split(';')
+        attachments.pop(-1)
+        for attachment in attachments:
+            file_info = attachment.split(',')
+            files.append({'id':file_info[0],
+                          'type':file_info[1]})
+    
     await bot.edit_message_text(chat_id=callback_query.message.chat.id,
                                 message_id=callback_query.message.message_id,
                                 text=result_string,
                                 reply_markup=inline_kb_edit1_back)
+    
+    for file in files:
+        if file['type'] == 'document':
+            await bot.send_document(chat_id=reminder.user_id, document=file['id'])
+            # media.attach_document(document=file['id'])
+        if file['type'] == 'photo':
+            await bot.send_photo(chat_id=reminder.user_id, photo=file['id'])
+            # media.attach_photo(photo=file['id'])
+        if file['type'] == 'video':
+            await bot.send_video(chat_id=reminder.user_id, video=file['id'])
+            # media.attach_video(video=file['id'])
+        if file['type'] == 'audio':
+            await bot.send_audio(chat_id=reminder.user_id, audio=file['id'])
 
 
 async def handler_done_reminder(callback_query: CallbackQuery, bot: Bot) -> None:
@@ -89,7 +113,7 @@ async def handler_done_reminder(callback_query: CallbackQuery, bot: Bot) -> None
     text, id = reminder_recognize_from_id(callback_query.message.text)
     reminder = reminders.done_reminder(id)
     print(reminder)
-    if text[1] == '*':
+    if text[:14] == 'Напоминание:\n\n':
         text = text.split('Напоминание:\n\n')[1]
     if reminder.is_done == 0:
         not_done_text = text[1:]
