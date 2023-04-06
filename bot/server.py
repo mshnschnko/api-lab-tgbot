@@ -17,7 +17,7 @@ from bot.handlers import buttons_handlers as hand_btn, callback_handlers as hand
 from bot.access import back_access
 from bot.identifier import reminder_recognize_from_id
 import db.db_manager as db
-from run import gauth
+# from run import gauth
 
 
 
@@ -116,7 +116,7 @@ async def add_attachments_temp(message: types.Message, state: FSMContext):
     # gauth = GoogleAuth()
     # gauth.LocalWebserverAuth()
     try:
-        gdrive = GoogleDrive(gauth)
+        # gdrive = GoogleDrive(gauth)
         async with state.proxy() as data:
             filename = ''
             file = None
@@ -149,12 +149,12 @@ async def add_attachments_temp(message: types.Message, state: FSMContext):
                 file = None
                 return
 
-            dir_path = os.getcwd()
-            doc_dir = "documents"
-            await file.download(destination_file=os.path.join(dir_path, doc_dir, filename))
-            new_file = gdrive.CreateFile({'title': f'{filename}', 'parents': [{'id': '1y5Zs-VIlg_U935EHQDxLHdWXfHa5gCG3'}]})
-            new_file.SetContentFile(os.path.join(dir_path, doc_dir, filename))
-            new_file.Upload()
+            # dir_path = os.getcwd()
+            # doc_dir = "documents"
+            # await file.download(destination_file=os.path.join(dir_path, doc_dir, filename))
+            # new_file = gdrive.CreateFile({'title': f'{filename}', 'parents': [{'id': '1y5Zs-VIlg_U935EHQDxLHdWXfHa5gCG3'}]})
+            # new_file.SetContentFile(os.path.join(dir_path, doc_dir, filename))
+            # new_file.Upload()
             # link = new_file['alternateLink']
             # i = link.find("view?usp=")
             # link = link[:i]
@@ -162,9 +162,9 @@ async def add_attachments_temp(message: types.Message, state: FSMContext):
             # link = new_file['id']
             link = filename
 
-            new_file = None
-            if os.path.isfile(os.path.join(dir_path, doc_dir, filename)):
-                os.remove(os.path.join(dir_path, doc_dir, filename))
+            # new_file = None
+            # if os.path.isfile(os.path.join(dir_path, doc_dir, filename)):
+            #     os.remove(os.path.join(dir_path, doc_dir, filename))
             data['attachments'] += str(link) + "," + file_type + ";"
             CompleteBtn = KeyboardButton("Завершить")
             CompleteKeyboard = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2, one_time_keyboard=True).add(CompleteBtn)
@@ -258,7 +258,7 @@ async def add_attachments_perm(message: types.Message, state: FSMContext):
     # gauth = GoogleAuth()
     # gauth.LocalWebserverAuth()
     try:
-        gdrive = GoogleDrive(gauth)
+        # gdrive = GoogleDrive(gauth)
         async with state.proxy() as data:
             filename = ''
             file = None
@@ -291,12 +291,12 @@ async def add_attachments_perm(message: types.Message, state: FSMContext):
                 file = None
                 return
 
-            dir_path = os.getcwd()
-            doc_dir = "documents"
-            await file.download(destination_file=os.path.join(dir_path, doc_dir, filename))
-            new_file = gdrive.CreateFile({'title': f'{filename}', 'parents': [{'id': '1y5Zs-VIlg_U935EHQDxLHdWXfHa5gCG3'}]})
-            new_file.SetContentFile(os.path.join(dir_path, doc_dir, filename))
-            new_file.Upload()
+            # dir_path = os.getcwd()
+            # doc_dir = "documents"
+            # await file.download(destination_file=os.path.join(dir_path, doc_dir, filename))
+            # new_file = gdrive.CreateFile({'title': f'{filename}', 'parents': [{'id': '1y5Zs-VIlg_U935EHQDxLHdWXfHa5gCG3'}]})
+            # new_file.SetContentFile(os.path.join(dir_path, doc_dir, filename))
+            # new_file.Upload()
             # link = new_file['alternateLink']
             # i = link.find("view?usp=")
             # link = link[:i]
@@ -304,9 +304,9 @@ async def add_attachments_perm(message: types.Message, state: FSMContext):
             # link = new_file['id']
             link = filename
 
-            new_file = None
-            if os.path.isfile(os.path.join(dir_path, doc_dir, filename)):
-                os.remove(os.path.join(dir_path, doc_dir, filename))
+            # new_file = None
+            # if os.path.isfile(os.path.join(dir_path, doc_dir, filename)):
+            #     os.remove(os.path.join(dir_path, doc_dir, filename))
             data['attachments'] += str(link) + "," + file_type + ";"
             CompleteBtn = KeyboardButton("Завершить")
             CompleteKeyboard = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2, one_time_keyboard=True).add(CompleteBtn)
@@ -373,7 +373,7 @@ async def add_attachments_book(message: types.Message, state: FSMContext):
     # gauth = GoogleAuth()
     # gauth.LocalWebserverAuth()
     try:
-        gdrive = GoogleDrive(gauth)
+        # gdrive = GoogleDrive(gauth)
         async with state.proxy() as data:
             filename = ''
             file = None
@@ -406,12 +406,12 @@ async def add_attachments_book(message: types.Message, state: FSMContext):
                 file = None
                 return
 
-            dir_path = os.getcwd()
-            doc_dir = "documents"
-            await file.download(destination_file=os.path.join(dir_path, doc_dir, filename))
-            new_file = gdrive.CreateFile({'title': f'{filename}', 'parents': [{'id': '1y5Zs-VIlg_U935EHQDxLHdWXfHa5gCG3'}]})
-            new_file.SetContentFile(os.path.join(dir_path, doc_dir, filename))
-            new_file.Upload()
+            # dir_path = os.getcwd()
+            # doc_dir = "documents"
+            # await file.download(destination_file=os.path.join(dir_path, doc_dir, filename))
+            # new_file = gdrive.CreateFile({'title': f'{filename}', 'parents': [{'id': '1y5Zs-VIlg_U935EHQDxLHdWXfHa5gCG3'}]})
+            # new_file.SetContentFile(os.path.join(dir_path, doc_dir, filename))
+            # new_file.Upload()
             # link = new_file['alternateLink']
             # i = link.find("view?usp=")
             # link = link[:i]
@@ -419,9 +419,9 @@ async def add_attachments_book(message: types.Message, state: FSMContext):
             # link = new_file['id']
             link = filename
             
-            new_file = None
-            if os.path.isfile(os.path.join(dir_path, doc_dir, filename)):
-                os.remove(os.path.join(dir_path, doc_dir, filename))
+            # new_file = None
+            # if os.path.isfile(os.path.join(dir_path, doc_dir, filename)):
+            #     os.remove(os.path.join(dir_path, doc_dir, filename))
             data['attachments'] += str(link) + "," + file_type + ";"
             CompleteBtn = KeyboardButton("Завершить")
             CompleteKeyboard = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2, one_time_keyboard=True).add(CompleteBtn)
