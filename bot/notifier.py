@@ -15,7 +15,7 @@ from bot.emojis import emojis_recognize
 
 
 async def job():
-    from run import gauth
+    # from run import gauth
     local_time = str(datetime.datetime.now())[:-9] + "00"
     print(datetime.datetime.now().timestamp())
     print(datetime.datetime.now())
@@ -29,7 +29,7 @@ async def job():
             print(elem)
             # print(elem[3])
             if elem['notification_type'] == 'perm':
-                db.set_date_with_id(id=elem['notification_id'], date=elem['time'])
+                db.set_date_with_id(id=elem['notification_id'], date=elem['time'], frequency=elem['frequency'])
             stick_done, stick_type = emojis_recognize(elem['is_done'], elem['notification_type'])
 
             answer_message = f"Напоминание:\n\n" \

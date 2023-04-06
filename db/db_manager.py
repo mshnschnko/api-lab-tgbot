@@ -1,5 +1,5 @@
 from typing import Dict, List, Tuple
-from datetime import timedelta
+from datetime import timedelta, datetime
 from dateutil.parser import parse
 from .models import *
 
@@ -52,16 +52,16 @@ def mark_done(id: int) -> Tuple:
     frequency = notification.frequency
     return notification_id, text, notification_type, time, is_done, frequency
 
-def set_date_with_id(id: int, date: str, frequency_str: str) -> None:
-    hours, minutes, seconds = map(int, frequency_str.split(":"))
-    print("hours, minutes, seconds: ", hours, minutes, seconds)
-    frequency = timedelta(hours=hours, minutes=minutes, seconds=seconds)
-    temp = date.split(" ")
-    hours, minutes, seconds = map(int, temp[1].split(":"))
-    date = timedelta(hours=hours, minutes=minutes, seconds=seconds)
-    date = temp[0] + ' ' + str(date + frequency)
-    date = parse(date, fuzzy=True)
-    notification = Notification(time = date)
+def set_date_with_id(id: int, date: datetime, frequency: int) -> None:
+    # hours, minutes, seconds = map(int, frequency_str.split(":"))
+    # print("hours, minutes, seconds: ", hours, minutes, seconds)
+    frequency = timedelta(minutes=frequency)
+    # temp = date.split(" ")
+    # hours, minutes, seconds = map(int, temp[1].split(":"))
+    # date = timedelta(hours=hours, minutes=minutes, seconds=seconds)
+    # date = temp[0] + ' ' + str(date + frequency)
+    # date = parse(date, fuzzy=True)
+    notification = Notification(time = date + frequency)
     notification.notification_id = id
     notification.save()
 
