@@ -22,4 +22,7 @@ class Edit(StatesGroup):
     id = State()
     title = State()
     date = State()
+    frequency = State()
     attachments = State()
+    add_attachemnts = State()
+    del_attachments = State()

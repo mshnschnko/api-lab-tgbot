@@ -51,43 +51,43 @@ def _recognize_category(id: int,
         return Bookmark(id=id, title=title, type=category, is_done=is_done)
 
 
-def get_all_reminders() -> list:
+def get_all_reminders(user_id: int) -> list:
     """
     Returns list of all reminders from database.
     """
-    notifications = Notification.select().order_by(Notification.time.asc()).dicts().execute()
+    notifications = Notification.select().where(Notification.user_id == user_id).order_by(Notification.time.asc()).dicts().execute()
     return notifications
 
 
-def get_permanent_reminders() -> list:
+def get_permanent_reminders(user_id: int) -> list:
     """
     Returns list of permanent reminders from db_manager.
     """
-    notifications = Notification.select().where(Notification.notification_type == 'perm').order_by(Notification.time.asc()).dicts().execute()
+    notifications = Notification.select().where(Notification.user_id == user_id).where(Notification.notification_type == 'perm').order_by(Notification.time.asc()).dicts().execute()
     return notifications
 
 
-def get_temporary_reminders() -> list:
+def get_temporary_reminders(user_id: int) -> list:
     """
     Returns list of temporary reminders from db_manager.
     """
-    notifications = Notification.select().where(Notification.notification_type == 'temp').order_by(Notification.time.asc()).dicts().execute()
+    notifications = Notification.select().where(Notification.user_id == user_id).where(Notification.notification_type == 'temp').order_by(Notification.time.asc()).dicts().execute()
     return notifications
 
 
-def get_bookmarks() -> list:
+def get_bookmarks(user_id: int) -> list:
     """
     Returns list of bookmarks from db_manager.
     """
-    notifications = Notification.select().where(Notification.notification_type == 'book').order_by(Notification.time.asc()).dicts().execute()
+    notifications = Notification.select().where(Notification.user_id == user_id).where(Notification.notification_type == 'book').order_by(Notification.time.asc()).dicts().execute()
     return notifications
 
 
-def delete_done_reminders() -> str:
+def delete_done_reminders(user_id: int) -> str:
     """
     Returns message with successful cleaning db_manager by 'is_done' parameter.
     """
-    db_manager.clean_done_tasks()
+    db_manager.clean_done_tasks(user_id=user_id)
     return 'done reminders were cleaned'
 
 

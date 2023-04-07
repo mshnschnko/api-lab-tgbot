@@ -59,7 +59,7 @@ async def edit_callback_message(bot: Bot,
                                 callback_query: CallbackQuery,
                                 data: str,
                                 markup: Union[InlineKeyboardMarkup,
-                                              ReplyKeyboardMarkup]
+                                              ReplyKeyboardMarkup] = None
                                 ) -> None:
     text, id = reminder_recognize_from_id(callback_query.message.text)
     
@@ -94,18 +94,19 @@ async def handler_edit_reminder(callback_query: CallbackQuery, bot: Bot) -> None
                                 text=result_string,
                                 reply_markup=inline_kb_edit1_back)
     
-    for file in files:
+    for idx, file in enumerate(files):
+        print(file['type'])
         if file['type'] == 'document':
-            await bot.send_document(chat_id=reminder.user_id, document=file['id'])
+            await bot.send_document(chat_id=reminder.user_id, document=file['id'], caption=f"{idx+1}")
             # media.attach_document(document=file['id'])
         if file['type'] == 'photo':
-            await bot.send_photo(chat_id=reminder.user_id, photo=file['id'])
+            await bot.send_photo(chat_id=reminder.user_id, photo=file['id'], caption=f"{idx+1}")
             # media.attach_photo(photo=file['id'])
         if file['type'] == 'video':
-            await bot.send_video(chat_id=reminder.user_id, video=file['id'])
+            await bot.send_video(chat_id=reminder.user_id, video=file['id'], caption=f"{idx+1}")
             # media.attach_video(video=file['id'])
         if file['type'] == 'audio':
-            await bot.send_audio(chat_id=reminder.user_id, audio=file['id'])
+            await bot.send_audio(chat_id=reminder.user_id, audio=file['id'], caption=f"{idx+1}")
 
 
 async def handler_done_reminder(callback_query: CallbackQuery, bot: Bot) -> None:

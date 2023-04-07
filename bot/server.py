@@ -17,6 +17,7 @@ from bot.handlers import buttons_handlers as hand_btn, callback_handlers as hand
 from bot.access import back_access
 from bot.identifier import reminder_recognize_from_id
 import db.db_manager as db
+from .identifier import reminder_recognize_from_id
 # from run import gauth
 
 
@@ -324,7 +325,7 @@ async def process_callback_btn_book(callback_query: types.CallbackQuery):
     await FormBookmark.title.set()
     await hand_clb.send_callback_answer(bot=bot,
                                         callback_query=callback_query,
-                                        data="Enter title of bookmark:",
+                                        data="Введите текст заметки:",
                                         markup=i_btn.inline_kb2,
                                         delete=True)
 
@@ -334,6 +335,10 @@ async def process_title_book(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['title'] = message.text
         data['attachments'] = ''
+    SkipBtn = KeyboardButton("Пропустить")
+    SkipKeyboard = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2, one_time_keyboard=True).add(SkipBtn)
+    await message.answer("Если хотите добавить вложения, то пришлите файл. Иначе нажмите кнопку пропустить.", reply_markup=SkipKeyboard)
+    await FormBookmark.next()
 
     #     answer = reminders.add_reminder(user_id=message.from_id,
     #                                     notification_type='book',
@@ -345,17 +350,16 @@ async def process_title_book(message: types.Message, state: FSMContext):
     #                                      data=answer_forms(answer),
     #                                      markup=i_btn.inline_kb_edit1)
     # await state.finish()
-    FormBookmark.next()
 
 
 @dp.message_handler(lambda message: message.text.startswith('Пропустить') or message.text.startswith('Завершить'), state=FormBookmark.attachments)
 async def cancel_attachments_book(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         answer = reminders.add_reminder(user_id=message.from_id,
-                                        notification_type='perm',
+                                        notification_type='book',
                                         text=data['title'],
-                                        date=data['date'],
-                                        frequency=data['frequency'],
+                                        date=None,
+                                        # frequency=data['frequency'],
                                         attachments=data['attachments'])
         await message.answer(text="Напоминание успешно создано.", reply_markup=r_btn.mainMenu)
         await hand_clb.send_forms_answer(bot=bot,
@@ -365,7 +369,7 @@ async def cancel_attachments_book(message: types.Message, state: FSMContext):
     await state.finish()
 
 
-@dp.message_handler(state=FormBookmark.attachments, content_types=["document", "photo", "video", "audio", "voice"])
+@dp.message_handler(state=FormBookmark.attachments, content_types=["document", "photo", "video", "audio"])
 async def add_attachments_book(message: types.Message, state: FSMContext):
     # await message.answer("я тут")
     # if message.text == "Пропустить":
@@ -452,10 +456,23 @@ async def process_callback_btn_edit(callback_query: types.CallbackQuery):
     # cделать проверку и переадрессацию на кнопку реплая исходя из темп или перм
     await storage.set_data(chat=callback_query.message.from_user.id, data={"text": callback_query.message.text,
                                                  "markup": i_btn.inline_kb_edit1_back})
-    await hand_clb.edit_callback_message(bot=bot,
+    _, id = reminder_recognize_from_id(callback_query.message.text)
+    notification = db.find_by_id(id=id)
+    if notification.notification_type == 'temp':
+        await hand_clb.edit_callback_message(bot=bot,
                                          callback_query=callback_query,
                                          data=callback_query.message.text,
                                          markup=i_btn.inline_kb_edit2)
+    if notification.notification_type == 'perm':
+        await hand_clb.edit_callback_message(bot=bot,
+                                         callback_query=callback_query,
+                                         data=callback_query.message.text,
+                                         markup=i_btn.inline_kb_edit_perm)
+    if notification.notification_type == 'book':
+        await hand_clb.edit_callback_message(bot=bot,
+                                         callback_query=callback_query,
+                                         data=callback_query.message.text,
+                                         markup=i_btn.inline_kb_edit_book)
 
 
 @dp.callback_query_handler(lambda c: c.data == 'btn_back')
@@ -476,10 +493,14 @@ async def process_callback_btn_edit_text(callback_query: types.CallbackQuery, st
         async with state.proxy() as data:
             data['id'] = id
         await Edit.title.set()
-    await hand_clb.edit_callback_message(bot=bot,
-                                         callback_query=callback_query,
-                                         data="EDIT TEXT",
-                                         markup=i_btn.inline_kb_edit1)
+    await hand_clb.send_callback_answer(bot=bot,
+                                        data="Введите новый текст",
+                                        callback_query=callback_query,
+                                        delete=True)
+    # await hand_clb.edit_callback_message(bot=bot,
+    #                                      callback_query=callback_query,
+    #                                      data="Введите новый текст",)
+                                        #  markup=i_btn.inline_kb_edit1)
 
 
 @dp.callback_query_handler(lambda c: c.data == 'btn_edit_date')
@@ -492,10 +513,14 @@ async def process_callback_btn_edit_date(callback_query: types.CallbackQuery, st
         async with state.proxy() as data:
             data['id'] = id
         await Edit.date.set()
-    await hand_clb.edit_callback_message(bot=bot,
-                                         callback_query=callback_query,
-                                         data="EDIT DATE/TIME",
-                                         markup=i_btn.inline_kb_edit1)
+    await hand_clb.send_callback_answer(bot=bot,
+                                    data="Введите новую дату",
+                                    callback_query=callback_query,
+                                    delete=True)
+    # await hand_clb.edit_callback_message(bot=bot,
+    #                                      callback_query=callback_query,
+    #                                      data="Введите новую дату/время",
+    #                                      markup=i_btn.inline_kb_edit1)
 
 
 @dp.callback_query_handler(lambda c: c.data == 'btn_edit_type')
@@ -507,11 +532,68 @@ async def process_callback_btn_edit_type(callback_query: types.CallbackQuery):
 
 
 @dp.callback_query_handler(lambda c: c.data == 'btn_edit_frq')
-async def process_callback_btn_edit_frq(callback_query: types.CallbackQuery):
-    await hand_clb.edit_callback_message(bot=bot,
-                                         callback_query=callback_query,
-                                         data="EDIT FREQUENCY",
-                                         markup=i_btn.inline_kb_edit1)
+async def process_callback_btn_edit_frq(callback_query: types.CallbackQuery, state: FSMContext):
+    await Edit.id.set()
+    current_state = await state.get_state()
+    id = int()
+    if not current_state is None:
+        _, id = reminder_recognize_from_id(callback_query.message.text)
+        async with state.proxy() as data:
+            data['id'] = id
+        await Edit.frequency.set()
+    await hand_clb.send_callback_answer(bot=bot,
+                                    data="Введите новую периодичность в минутах",
+                                    callback_query=callback_query,
+                                    delete=True)
+    # await hand_clb.edit_callback_message(bot=bot,
+    #                                      callback_query=callback_query,
+    #                                      data="Введите новую периодичность в минутах",
+    #                                      markup=i_btn.inline_kb_edit1)
+
+
+@dp.callback_query_handler(lambda c: c.data == 'btn_edit_att')
+async def process_callback_btn_edit_attachments(callback_query: types.CallbackQuery, state: FSMContext):
+    await Edit.id.set()
+    current_state = await state.get_state()
+    id = int()
+    if not current_state is None:
+        _, id = reminder_recognize_from_id(callback_query.message.text)
+        async with state.proxy() as data:
+            data['id'] = id
+            data['attachments'] = ''
+        await Edit.attachments.set()
+    await hand_clb.send_callback_answer(bot=bot,
+                                    data="Выберите вариант редактирования",
+                                    callback_query=callback_query,
+                                    delete=True,
+                                    markup=i_btn.inline_kb_edit_attachments)
+    
+
+@dp.callback_query_handler(lambda c: c.data == 'btn_add_att', state=Edit.attachments)
+async def process_callback_btn_add_attachments(callback_query: types.CallbackQuery, state: FSMContext):
+    await Edit.add_attachemnts.set()
+    await hand_clb.send_callback_answer(bot=bot,
+                                    data="Прикрепите новые вложения по одному",
+                                    callback_query=callback_query,
+                                    delete=True)
+    
+
+@dp.callback_query_handler(lambda c: c.data == 'btn_del_att', state=Edit.attachments)
+async def process_callback_btn_del_attachments(callback_query: types.CallbackQuery, state: FSMContext):
+    await Edit.del_attachments.set()
+    notification = None
+    async with state.proxy() as data:
+        notification = db.find_by_id(data['id'])
+    if len(notification.attachments) > 0:
+        await hand_clb.send_callback_answer(bot=bot,
+                                        data="Пришлите номера файлов для удаления, разделяя числа проеблом.",
+                                        callback_query=callback_query,
+                                        delete=True)
+    else:
+        await hand_clb.send_callback_answer(bot=bot,
+                                        data="Вложений нет, удалить ничего нельзя.",
+                                        callback_query=callback_query,
+                                        delete=True)
 
 
 @dp.callback_query_handler(lambda c: c.data == 'btn_back_list')
@@ -526,7 +608,7 @@ async def process_callback_btn_back_list(callback_query: types.CallbackQuery):
     except KeyError:
         await hand_clb.send_callback_answer(bot=bot,
                                             callback_query=callback_query,
-                                            data="Choose in menu:",
+                                            data="Выберите из меню:",
                                             markup=r_btn.mainMenu,
                                             delete=True)
 
@@ -551,38 +633,115 @@ async def edit_date(message: types.Message, state: FSMContext):
         await state.finish()
 
 
+@dp.message_handler(state=Edit.frequency)
+async def edit_frequency(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        data['frequency'] = message.text
+        db.edit_frequency_with_id(id=data['id'], frequncy=data['frequency'])
+
+        await message.answer("Периодичность напоминания обновлена", reply_markup=r_btn.mainMenu)
+        await state.finish()
+
+
+@dp.message_handler(lambda message: message.text.startswith('Завершить редактирование'), state=Edit.add_attachemnts)
+async def edit_add_attachments(message: types.Message, state: FSMContext):
+    await state.finish()
+    await message.answer(text="Редактирование вложений успешно завершено.", reply_markup=r_btn.mainMenu)
+
+
+@dp.message_handler(state=Edit.add_attachemnts, content_types=["document", "photo", "video", "audio"])
+async def edit_add_attachments(message: types.Message, state: FSMContext):
+    async with state.proxy() as data:
+        filename = ''
+        file = None
+        file_type = None
+        if not message.document is None:
+            file = message.document
+            file_type = 'document'
+            filename = message.document.file_id
+        elif not message.photo is None:
+            file = message.photo[0]
+            file_type = 'photo'
+            filename = message.photo[0].file_id
+        elif not message.video is None:
+            file = message.video
+            file_type = 'video'
+            filename = message.video.file_id
+        elif not message.audio is None:
+            file = message.audio
+            file_type = 'audio'
+            filename = message.audio.file_id
+
+        else:
+            await message.answer("Файл данного типа нельзя сохранить.")
+            file = None
+            return
+        link = filename
+        
+        data['attachments'] = str(link) + "," + file_type + ";"
+        print("new = ", data['attachments'])
+        db.add_attachment_with_id(id=data['id'], attachment=data['attachments'])
+        comlete_att_editing_btn = KeyboardButton("Завершить редактирование")
+        comlete_att_editing_kb = ReplyKeyboardMarkup(resize_keyboard=True, row_width=1, one_time_keyboard=True).add(comlete_att_editing_btn)
+        await message.answer("Файл добавлен. Если хотите завершить редактирование, нажмите соответствующую кнопку.", reply_markup=comlete_att_editing_kb)
+        # await state.finish()
+
+
+@dp.message_handler(state=Edit.del_attachments)
+async def edit_del_attachments(message: types.Message, state: FSMContext):
+    # res = 0   OK
+    # res = -1  OUT OF RANGE
+    # res = -2  INVALID INPUT
+    res = -1
+    async with state.proxy() as data:
+        data['attachments'] = message.text
+        nums = message.text.split(' ')
+        if all(list(map(str.isdigit, nums))):
+            nums = list(map(lambda x: int(x)-1, nums))
+            res = db.del_attachments_with_id(data['id'], nums)
+        else:
+            res = -2
+    if res == 0:
+        await message.answer("Выбранные файлы удалены.", reply_markup=r_btn.mainMenu)
+    elif res == -1:
+        await message.answer("Номера не соответствуют существующим вложениям.", reply_markup=r_btn.mainMenu)
+    elif res == -2:
+        await message.answer("Неверный ввод: возможно вы ввели буквы вместо цифр.", reply_markup=r_btn.mainMenu)
+    await state.finish()
+
+
 @dp.message_handler(commands=['start', 'help', 'menu'])
 async def send_welcome(message: types.Message):
     """
     This handler will be called when user sends `/start` or `/help` command
     """
     await message.answer(
-        "Reminder bot",
+        "Вас приветствует бот-напоминалка Urban Potato!",
         reply_markup=r_btn.mainMenu)
 
 
-@dp.message_handler(lambda message: message.text.startswith('/del'))
-async def del_reminder(message: types.Message):
-    """Delete only 1 reminder by identificator"""
-    try:
-        row_id = int(message.text[4:])
-    except ValueError:
-        await message.answer("Дядь, ну айдишник то передай а...")
-        return
-    answer_message = reminders.delete_reminder(row_id)
-    await message.answer(answer_message)
+# @dp.message_handler(lambda message: message.text.startswith('/del'))
+# async def del_reminder(message: types.Message):
+#     """Delete only 1 reminder by identificator"""
+#     try:
+#         row_id = int(message.text[4:])
+#     except ValueError:
+#         await message.answer("Дядь, ну айдишник то передай а...")
+#         return
+#     answer_message = reminders.delete_reminder(row_id)
+#     await message.answer(answer_message)
 
 
-@dp.message_handler(lambda message: message.text.startswith('/done'))
-async def add_task_to_done(message: types.Message):
-    """Delete only 1 reminder by identificator"""
-    try:
-        row_id = int(message.text[5:])
-    except ValueError:
-        await message.answer("Дядь, ну айдишник то передай а...")
-        return
-    answer_message = reminders.done_reminder(row_id)
-    await message.answer(answer_message)
+# @dp.message_handler(lambda message: message.text.startswith('/done'))
+# async def add_task_to_done(message: types.Message):
+#     """Delete only 1 reminder by identificator"""
+#     try:
+#         row_id = int(message.text[5:])
+#     except ValueError:
+#         await message.answer("Дядь, ну айдишник то передай а...")
+#         return
+#     answer_message = reminders.done_reminder(row_id)
+#     await message.answer(answer_message)
 
 
 @dp.message_handler(lambda message: message.text.startswith('Показать напоминания'))
@@ -638,7 +797,7 @@ async def show_bookmarks(message: types.Message):
 async def clean(message: types.Message):
     """Clean db and delete reminders which were done later."""
     await hand_btn.send_message(message=message,
-                                data=reminders.delete_done_reminders(),
+                                data=reminders.delete_done_reminders(user_id=message.from_id),
                                 markup=r_btn.mainMenu)
 
 
