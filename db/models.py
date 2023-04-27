@@ -1,5 +1,19 @@
 from peewee import *
-from .db_config import *
+from dotenv import load_dotenv
+import os
+# from .db_config import *
+
+dotenv_path = 'db.env'
+if os.path.exists(dotenv_path):
+    load_dotenv(dotenv_path)
+
+DB_URL=os.environ.get("DB_URL")
+DB_NAME=os.environ.get("DB_NAME")
+DB_USER=os.environ.get("DB_USER")
+DB_PASSWORD=os.environ.get("DB_PASSWORD")
+DB_HOST=os.environ.get("DB_HOST")
+DB_PORT=os.environ.get("DB_PORT")
+DB_API_TOKEN=os.environ.get("DB_API_TOKEN")
 
 conn = PostgresqlDatabase(DB_NAME, user=DB_USER, password=DB_PASSWORD, host=DB_HOST, port=DB_PORT)
 

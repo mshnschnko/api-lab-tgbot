@@ -1,4 +1,5 @@
 *venv*
+*.env
 *pycache*
 db_config.py
 tokens.py

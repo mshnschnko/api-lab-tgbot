@@ -18,6 +18,7 @@ from bot.access import back_access
 from bot.identifier import reminder_recognize_from_id
 import db.db_manager as db
 from .identifier import reminder_recognize_from_id
+from .upload_to_yadisk import upload
 # from run import gauth
 
 
@@ -161,12 +162,13 @@ async def add_attachments_temp(message: types.Message, state: FSMContext):
             # link = link[:i]
 
             # link = new_file['id']
-            link = filename
+            
 
             # new_file = None
             # if os.path.isfile(os.path.join(dir_path, doc_dir, filename)):
             #     os.remove(os.path.join(dir_path, doc_dir, filename))
-            data['attachments'] += str(link) + "," + file_type + ";"
+            data['attachments'] += str(filename) + "," + file_type + ";"
+            await upload(message)
             CompleteBtn = KeyboardButton("Завершить")
             CompleteKeyboard = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2, one_time_keyboard=True).add(CompleteBtn)
             await message.answer("Файл успешно загружен. Если вы больше не хотите загружать файлы, то нажмите Завершить.", reply_markup=CompleteKeyboard)
@@ -303,12 +305,13 @@ async def add_attachments_perm(message: types.Message, state: FSMContext):
             # link = link[:i]
 
             # link = new_file['id']
-            link = filename
+            # link = filename
 
             # new_file = None
             # if os.path.isfile(os.path.join(dir_path, doc_dir, filename)):
             #     os.remove(os.path.join(dir_path, doc_dir, filename))
-            data['attachments'] += str(link) + "," + file_type + ";"
+            data['attachments'] += str(filename) + "," + file_type + ";"
+            await upload(message)
             CompleteBtn = KeyboardButton("Завершить")
             CompleteKeyboard = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2, one_time_keyboard=True).add(CompleteBtn)
             await message.answer("Файл успешно загружен. Если вы больше не хотите загружать файлы, то нажмите Завершить.", reply_markup=CompleteKeyboard)
@@ -421,12 +424,13 @@ async def add_attachments_book(message: types.Message, state: FSMContext):
             # link = link[:i]
 
             # link = new_file['id']
-            link = filename
+            # link = filename
             
             # new_file = None
             # if os.path.isfile(os.path.join(dir_path, doc_dir, filename)):
             #     os.remove(os.path.join(dir_path, doc_dir, filename))
-            data['attachments'] += str(link) + "," + file_type + ";"
+            data['attachments'] += str(filename) + "," + file_type + ";"
+            await upload(message)
             CompleteBtn = KeyboardButton("Завершить")
             CompleteKeyboard = ReplyKeyboardMarkup(resize_keyboard=True, row_width=2, one_time_keyboard=True).add(CompleteBtn)
             await message.answer("Файл успешно загружен. Если вы больше не хотите загружать файлы, то нажмите Завершить.", reply_markup=CompleteKeyboard)
