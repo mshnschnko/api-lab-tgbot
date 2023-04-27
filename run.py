@@ -8,9 +8,6 @@ import os
 from bot.server import dp
 from bot.notifier import scheduler
 
-# gauth = GoogleAuth()
-# gauth.LocalWebserverAuth() 
-# gdrive = GoogleDrive(gauth)
 
 async def on_startup(_):
     asyncio.create_task(scheduler())
