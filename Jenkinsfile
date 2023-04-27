@@ -41,15 +41,17 @@ pipeline {
         stage('Getting env and buackup') {
             steps {
                 echo 'Getting environment variables and backuping data...'
-                withCredentials([file(credentialsId: 'TGBOTENV', variable: 'TGBOTENV')]) {
+                withCredentials([file(credentialsId: 'TGBOTENV', variable: 'TGBOTENV'), file(credentialsId: 'DBENV', variable: 'DBENV')]) {
                     script {
                         if (isUnix()) {
                             sh 'cp $TGBOTENV ./.env'
+                            sh 'cp $DBENV ./db.env'
                             sh 'mkdir -p ./storage/temp'
                             sh 'mkdir -p ./storage/backup'
                             // sh 'python backup.py'
                         } else {
                             bat 'powershell Copy-Item %TGBOTENV% -Destination ./.env'
+                            bat 'powershell Copy-Item %DBENV% -Destination ./db.env'
                             bat 'If Not Exist storage\\temp mkdir storage\\temp'
                             bat 'If Not Exist storage\\backup mkdir storage\\backup'
                             // bat 'python backup.py'
