@@ -9,14 +9,15 @@ RUN apt-get update && apt-get install -y postgresql
 
 RUN pip install -r requirements.txt
 
+COPY .env ./.env
+COPY db.env ./db.env
+
 COPY bot/ ./bot/
 COPY db/ ./db/
 COPY backup.py ./backup.py
 COPY exceptions.py ./exceptions.py
 COPY run.py ./run.py
 
-COPY .env ./.env
-COPY db.env ./db.env
 
 EXPOSE 5000
 EXPOSE 5432
