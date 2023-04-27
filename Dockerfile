@@ -1,6 +1,6 @@
 FROM python:3.10.10
 
-WORKDIR /test_webhook
+WORKDIR /api-lab-tgbot
 
 COPY requirements.txt ./requirements.txt
 
