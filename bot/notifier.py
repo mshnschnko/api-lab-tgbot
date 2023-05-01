@@ -97,3 +97,13 @@ async def scheduler():
     while True:
         await aioschedule.run_pending()
         await asyncio.sleep(1)
+
+
+from fastapi import FastAPI
+
+app = FastAPI()
+
+@app.get('/api/send_notifications')
+async def send_notifications():
+    await job()
+    print("GET")

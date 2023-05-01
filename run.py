@@ -4,11 +4,11 @@ from aiogram.utils import executor
 import os
 
 from bot.server import dp
-from bot.notifier import scheduler
+from bot.notifier import scheduler, send_notifications
 
 
 async def on_startup(_):
-    asyncio.create_task(scheduler())
+    asyncio.create_task(send_notifications())
 
 
 if __name__ == '__main__':

@@ -1,0 +1,20 @@
+#!/usr/bin/sh
+
+pipeline {
+    agent any
+    triggers {
+        cron('*/2 * * * *')
+    }
+
+    stages {
+        stage ('Check notifications') {
+            script {
+                if (isUnix()) {
+                    sh 'curl http://127.0.0.1:8000/api/send_notifications'
+                } else {
+                    bat 'powershell curl http://127.0.0.1:8000/api/send_notifications'
+                }
+            }
+        }
+    }
+}
