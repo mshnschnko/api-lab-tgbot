@@ -20,6 +20,7 @@ COPY run.py ./run.py
 
 
 EXPOSE 5000
+EXPOSE 8000
 EXPOSE 5432
 
 RUN mkdir -p ./storage/temp
