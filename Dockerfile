@@ -17,6 +17,7 @@ COPY db/ ./db/
 COPY backup.py ./backup.py
 COPY exceptions.py ./exceptions.py
 COPY run.py ./run.py
+COPY app.py ./app.py
 COPY startup.sh ./startup.sh
 
 EXPOSE 5000
@@ -30,5 +31,5 @@ RUN touch storage/dump.sql
 
 RUN chmod ugo+rwx storage/dump.sql
 
-# CMD [ "python", "run.py" ]
-CMD ["./startup.sh"]
+CMD [ "python", "run.py" ]
+# ENTRYPOINT ["./startup.sh"]

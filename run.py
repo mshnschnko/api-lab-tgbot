@@ -28,10 +28,10 @@ from bot.notifier import scheduler, job
 #     print("GET")
 
 
-# async def on_startup(_):
+async def on_startup(_):
     # run_app()
     # thr.start()
-    # asyncio.create_task(asyncio.run(run_app()))
+    asyncio.create_task(scheduler())
 
 # async def on_shutdown(_):
     # thr.join()
