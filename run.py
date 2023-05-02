@@ -52,5 +52,5 @@ if __name__ == '__main__':
     # uvicorn.run(app, host="0.0.0.0", port=8000)
     # t1.join()
     # thr.start()
-    executor.start_polling(dp, skip_updates=True)
+    executor.start_polling(dp, skip_updates=True, on_startup=on_startup)
     # thr.join()
