@@ -1,22 +1,17 @@
-import asyncio
-import datetime
-import os
-from aiogram import types
-
-
-import aioschedule
+from fastapi import FastAPI
+import uvicorn
 from aiogram.types import InlineKeyboardMarkup
-
-from pydrive.drive import GoogleDrive
+import datetime
 
 from bot import bot
 import db.db_manager as db
-import bot.buttons.inline_buttons as i_btn
 from bot.emojis import emojis_recognize
+import bot.buttons.inline_buttons as i_btn
 
+app = FastAPI()
 
-async def job():
-    # from run import gauth
+@app.get('/api/send_notifications')
+async def send_notifications():
     local_time = str(datetime.datetime.now())[:-9] + "00"
     print(datetime.datetime.now().timestamp())
     print(datetime.datetime.now())
@@ -44,33 +39,7 @@ async def job():
                     file_info = attachment.split(',')
                     files.append({'id':file_info[0],
                                   'type':file_info[1]})
-            # media = types.MediaGroup()
-            # paths = list()
-            # if not len(files) == 0:
-            #     for idx, file in enumerate(files):
-            #         print(file)
-                    # try:
-                    #     dir_path = os.getcwd()
-                    #     doc_dir = "documents"
-                    #     gdrive = GoogleDrive(gauth)
-                    #     file1 = gdrive.CreateFile({'id': file})
-                    #     file_to_send_path = os.path.join(dir_path, doc_dir, file)
-                    #     paths.append(file_to_send_path)
-                    #     file1.GetContentFile(file_to_send_path)
-                    #     media.attach_document(types.InputFile(file_to_send_path), f"file_{idx}")
-                    # except Exception as ex:
-                    #     print(ex)
-
-                    # if file['type'] == 'document':
-                    #     media.attach_document(document=file['id'])
-                    # if file['type'] == 'photo':
-                    #     media.attach_photo(photo=file['id'])
-                    # if file['type'] == 'video':
-                    #     media.attach_video(video=file['id'])
-                    # if file['type'] == 'audio':
-                    #     media.attach_audio(audio=file['id'])
             await bot.send_message(chat_id=elem['user_id'], text=answer_message, reply_markup=i_btn.inline_kb_edit1)
-            
             for file in files:
                 if file['type'] == 'document':
                     await bot.send_document(chat_id=elem['user_id'], document=file['id'])
@@ -83,19 +52,10 @@ async def job():
                     # media.attach_video(video=file['id'])
                 if file['type'] == 'audio':
                     await bot.send_audio(chat_id=elem['user_id'], audio=file['id'])
-                    # media.attach_audio(audio=file['id'])
+        return {"message": "notifications have sent"}
+    else:
+        return {"message": "There are not notifications to send"}
 
-            # if not len(files) == 0:
-                # await bot.send_media_group(chat_id=elem['user_id'], media=media)
-            # for path in paths:
-            #     if os.path.isfile(path):
-            #         os.remove(path)
-            # for file in files:
-            #     await bot.send_document(chat_id=elem['user_id'], )
 
-async def scheduler():
-    aioschedule.every(59).seconds.do(job)
-    while True:
-        await aioschedule.run_pending()
-        await asyncio.sleep(1)
-
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)
