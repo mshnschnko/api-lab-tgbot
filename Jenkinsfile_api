@@ -9,13 +9,14 @@ pipeline {
     stages {
         stage ('Check notifications') {
             steps {
-                script {
-                    if (isUnix()) {
-                        sh 'curl http://127.0.0.1:8000/api/send_notifications'
-                    } else {
-                        bat 'powershell curl http://127.0.0.1:8000/api/send_notifications'
-                    }
-                }
+                curl 'curl http://127.0.0.1:8000/api/send_notifications'
+                // script {
+                //     if (isUnix()) {
+                //         sh 'curl http://127.0.0.1:8000/api/send_notifications'
+                //     } else {
+                //         bat 'powershell curl http://127.0.0.1:8000/api/send_notifications'
+                //     }
+                // }
             }
         }
     }
