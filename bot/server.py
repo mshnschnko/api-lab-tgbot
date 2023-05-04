@@ -103,7 +103,7 @@ async def cancel_attachments_temp(message: types.Message, state: FSMContext):
                                             text=data['title'],
                                             date=data['date'],
                                             attachments=data['attachments'])
-        await message.answer(text=f"Напоминание успешно создано.\nМестное время: {str(datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=3))))[:-9] + '00'}", reply_markup=r_btn.mainMenu)
+        await message.answer(text=f"Напоминание успешно создано.\nМестное время: {str(datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=3))))[:-15] + '00'}", reply_markup=r_btn.mainMenu)
         await hand_clb.send_forms_answer(bot=bot,
                                             message=message,
                                             data=answer_forms(answer),
