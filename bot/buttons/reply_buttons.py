@@ -8,7 +8,7 @@ btnCleanDone = KeyboardButton('Очистить')
 cancelMenu = ReplyKeyboardMarkup(resize_keyboard=True).add(btnCancel)
 
 # --- Main Menu buttons ---
-btnCreate = KeyboardButton('Создать новое')
+btnCreate = KeyboardButton('Создать новое ХЕХЕЕХ')
 btnWatchList = KeyboardButton('Показать напоминания')
 mainMenu = ReplyKeyboardMarkup(resize_keyboard=True, row_width=1, one_time_keyboard=True).add(btnCreate,
                                                                                               btnWatchList,
