@@ -720,7 +720,7 @@ async def send_welcome(message: types.Message):
     This handler will be called when user sends `/start` or `/help` command
     """
     await message.answer(
-        "Вас приветствует бот-напоминалка Urban Potato!",
+        "Вас приветствует бот-напоминалка Urban Potato! сыр",
         reply_markup=r_btn.mainMenu)
 
 
