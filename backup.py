@@ -44,7 +44,7 @@ def backup():
             ext = 'zip'
         elif platform.system() == 'Linux':
             # os.system(f'zip -r {os.path.join(LOCAL_STORAGE, "temp", "backup.zip")} {os.path.join(LOCAL_STORAGE, "backup")}')
-            os.system(f'tar -jcvf {os.path.join(LOCAL_STORAGE, "temp", "backup.tar")}\
+            os.system(f'tar -zcvf {os.path.join(LOCAL_STORAGE, "temp", "backup.tar")}\
                         {os.path.join(LOCAL_STORAGE, "backup")} {os.path.join(LOCAL_STORAGE, "dump.sql")}')
             # os.system(f'tar -jrvf {os.path.join(LOCAL_STORAGE, "temp", "backup.tar")} {os.path.join(LOCAL_STORAGE, "dump.sql")}')
             ext = 'tar'
