@@ -17,7 +17,7 @@ from bot.emojis import emojis_recognize
 
 async def job():
     # from run import gauth
-    local_time = str(datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=+3))))[:-9] + "00"
+    local_time = str(datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=3))))[:-9] + "00"
     print(datetime.datetime.now().timestamp())
     print(datetime.datetime.now())
     inline_kb_to_choose = InlineKeyboardMarkup(row_width=6)
